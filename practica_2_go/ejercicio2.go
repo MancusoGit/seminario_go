@@ -89,12 +89,26 @@ func Len(o OptimumSlice) int {
 	return cant
 }
 
-func main() {
-	vec := []int{1, 1, 1, 2, 3, 3, 3, 3}
-	slice := New(vec)
+func SliceArray(o OptimumSlice) []int {
+	list := o.lista
+	var vec []int
+	for list != nil {
+		for i := 0; i < list.apariciones; i++ {
+			vec = append(vec, list.numero)
+		}
+		list = list.sig
+	}
+	return vec
+}
 
+func main() {
+	vec := []int{1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 6, 44, 4}
+	slice := New(vec)
+	fmt.Println(vec)
 	fmt.Println("la cantida de elementos del slice es: ", Len(slice))
 	fmt.Println("el primer elemento del slice es: ", FrontElement(slice))
 	fmt.Println("el ultimo elemento del slice es: ", LastElement(slice))
 	Mostrar(slice)
+	vec = SliceArray(slice)
+	fmt.Println(vec)
 }
