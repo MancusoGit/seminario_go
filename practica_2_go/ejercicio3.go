@@ -55,19 +55,62 @@ func (o OptimumSlice) LastElement() int {
 
 // retorna 0 si salio todo bien, y -1 si hubo un fallo
 func (o *OptimumSlice) Insert(element int, position int) int {
-	if position < 0 || position > len(o.slice) {
+
+	//corroboro si la posicion es invalida
+	if position < 0 || position > o.totalLength() {
+		fmt.Println("¡Posición fuera de rango!")
 		return -1
 	}
-	pos := o.Len() - position
-	if o.slice[pos].numero == element {
-		o.slice[pos].apariciones++
-		return 0
+
+
+	acumulado := 0
+
+	for i, v := range o.slice {
+		if acumulado+v.apariciones > position {
+			offset := position - acumulado
+
+			//si el numero y la posicion coinciden con el que ya esta en el slice le aumento las apariciones
+			if v.numero == element {
+				o.slice[i].apariciones++
+				return 0
+			}
+
+			//inserto en el medio del vector
+			izq := Values{v.numero, offset}
+			medio := Values{element, 1}
+			der := Values{v.numero, v.apariciones - offset}
+
+			var nuevo []Values
+			nuevo = append(nuevo, o.slice[:i]...)
+			if izq.apariciones > 0 {
+				nuevo = append(nuevo, izq)
+			}
+			nuevo = append(nuevo, medio)
+			if der.apariciones > 0 {
+				nuevo = append(nuevo, der)
+			}
+			nuevo = append(nuevo, o.slice[i+1:]...)
+			o.slice = nuevo
+			return 0
+		}
+		acumulado += v.apariciones
 	}
-	primerVec := o.slice[:pos]
-	segundoVec := o.slice[pos:]
-	primerVec = append(primerVec, Values{element, 1})
-	o.slice = append(primerVec, segundoVec...)
+
+	//agrego al final
+	if len(o.slice) > 0 && o.slice[len(o.slice)-1].numero == element {
+		o.slice[len(o.slice)-1].apariciones++
+	} else {
+		o.slice = append(o.slice, Values{element, 1})
+	}
 	return 0
+}
+
+func (o OptimumSlice) totalLength() int {
+	total := 0
+	for _, v := range o.slice {
+		total += v.apariciones
+	}
+	return total
 }
 
 func (o OptimumSlice) SliceArray() []int {
@@ -102,3 +145,4 @@ func main() {
 	vec = slice.SliceArray()
 	fmt.Println(vec)
 }
+
