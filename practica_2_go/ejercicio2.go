@@ -2,113 +2,103 @@ package main
 
 import "fmt"
 
-//	"fmt"
-
-type listita *nodito
-
-type OptimumSlice struct {
-	lista             listita
-	ultimoNodo        listita
-	cantidadElementos int
-}
-
-type nodito struct {
+type Values struct {
 	numero      int
 	apariciones int
-	sig         listita
+}
+
+type OptimumSlice struct {
+	slice []Values
 }
 
 func New(s []int) OptimumSlice {
 	var pi OptimumSlice
-	pi.lista = nil
-	pi.cantidadElementos = 0
-	numAct := s[0]
-	cant := 0
-	for _, num := range s {
-		if num == numAct {
-			cant++
-		} else {
-			agregarElemento(&pi, numAct, cant)
-			numAct = num
-			cant = 1
+	pi.slice = nil
+	if len(s) != 0 {
+		numAct := s[0]
+		cant := 0
+		for _, num := range s {
+			if num == numAct {
+				cant++
+			} else {
+				pi.slice = append(pi.slice, Values{numAct, cant})
+				numAct = num
+				cant = 1
+			}
 		}
+		pi.slice = append(pi.slice, Values{numAct, cant})
 	}
-	agregarElemento(&pi, numAct, cant)
 	return pi
 }
 
-func Mostrar(o OptimumSlice) {
-	if o.lista == nil {
-		fmt.Println("La lista está vacía.")
-		return
+func (o OptimumSlice) IsEmpty() bool {
+	return len(o.slice) == 0
+}
+
+func (o OptimumSlice) Len() int {
+	return len(o.slice)
+}
+
+func (o OptimumSlice) FrontElement() int {
+	if o.IsEmpty() {
+		return 0
 	}
-	actual := o.lista
-	for actual != nil {
-		fmt.Printf("Valor: %d, Cantidad: %d\n", actual.numero, actual.apariciones)
-		actual = actual.sig
+	return o.slice[0].numero
+}
+
+func (o OptimumSlice) LastElement() int {
+	if o.IsEmpty() {
+		return 0
 	}
+	return o.slice[len(o.slice)-1].numero
 }
 
-func FrontElement(o OptimumSlice) int {
-	return o.lista.numero
-}
-
-func LastElement(o OptimumSlice) int {
-	return o.ultimoNodo.numero
-}
-
-func agregarElemento(pi *OptimumSlice, num, cant int) {
-	nue := new(nodito)
-	nue.numero = num
-	nue.apariciones = cant
-	nue.sig = nil
-	if pi.lista == nil {
-		pi.lista = nue
-	} else {
-		pi.ultimoNodo.sig = nue
+// retorna 0 si salio todo bien, y -1 si hubo un fallo
+func (o *OptimumSlice) Insert(element int, position int) int {
+	if position < 0 || position > len(o.slice) {
+		return -1
 	}
-	pi.ultimoNodo = nue
-	pi.cantidadElementos++
-}
-
-func IsEmpty(o OptimumSlice) bool {
-	return o.lista == nil
-}
-
-func Len(o OptimumSlice) int {
-	cant := 0
-	list := o.lista
-	for {
-		if list == nil {
-			break
-		} else {
-			cant++
-			list = list.sig
-		}
+	pos := o.Len() - position
+	if o.slice[pos].numero == element {
+		o.slice[pos].apariciones++
+		return 0
 	}
-	return cant
+	primerVec := o.slice[:pos]
+	segundoVec := o.slice[pos:]
+	primerVec = append(primerVec, Values{element, 1})
+	o.slice = append(primerVec, segundoVec...)
+	return 0
 }
 
-func SliceArray(o OptimumSlice) []int {
-	list := o.lista
+func (o OptimumSlice) SliceArray() []int {
 	var vec []int
-	for list != nil {
-		for i := 0; i < list.apariciones; i++ {
-			vec = append(vec, list.numero)
+	for _, v := range o.slice {
+		for i := 0; i < v.apariciones; i++ {
+			vec = append(vec, v.numero)
 		}
-		list = list.sig
 	}
 	return vec
+}
+
+func Mostrar(o OptimumSlice) {
+	if o.IsEmpty() {
+		fmt.Println("el slice esta vacio")
+		return
+	}
+	for i := 0; i < len(o.slice); i++ {
+		fmt.Printf("Valor: %d, Cantidad: %d\n", o.slice[i].numero, o.slice[i].apariciones)
+	}
 }
 
 func main() {
 	vec := []int{1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 6, 44, 4}
 	slice := New(vec)
 	fmt.Println(vec)
-	fmt.Println("la cantida de elementos del slice es: ", Len(slice))
-	fmt.Println("el primer elemento del slice es: ", FrontElement(slice))
-	fmt.Println("el ultimo elemento del slice es: ", LastElement(slice))
+	fmt.Println("la cantida de elementos del slice es: ", slice.Len())
+	fmt.Println("el primer elemento del slice es: ", slice.FrontElement())
+	fmt.Println("el ultimo elemento del slice es: ", slice.LastElement())
+	slice.Insert(2, 4)
 	Mostrar(slice)
-	vec = SliceArray(slice)
+	vec = slice.SliceArray()
 	fmt.Println(vec)
 }
