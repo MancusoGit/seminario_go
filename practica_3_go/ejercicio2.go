@@ -37,7 +37,7 @@ func cajeroPaja(id int, fila chan string, wg *sync.WaitGroup) {
 	fmt.Println("Cajero", id, "ha terminado de atender a sus 3 clientes.")
 }
 
-func mainnnnn() {
+func main() {
 	var wg sync.WaitGroup
 	fila := make(chan string, 10) // Canal con capacidad para 10 clientes
 
