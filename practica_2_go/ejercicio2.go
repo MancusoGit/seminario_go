@@ -24,7 +24,7 @@ type bloque struct {
 	hash         string
 	hashAnterior string
 	timestamp    time.Time
-	data         []transaccion
+	data         transaccion
 	sig          *bloque
 }
 
@@ -32,11 +32,8 @@ type blockchain struct {
 	inicio *bloque
 }
 
-func generarHash(hashAnt string, timestamp time.Time, data []transaccion) string {
+func generarHash(hashAnt string, timestamp time.Time, data transaccion) string {
 	input := hashAnt + timestamp.String()
-	for _, t := range data {
-		input += fmt.Sprintf("%s%d%s%s", t.emisorID, t.monto, t.receptorID, t.timestamp.String())
-	}
 	hash := sha256.Sum256([]byte(input))
 	return hex.EncodeToString(hash[:])
 }
@@ -47,7 +44,7 @@ func (b *billetera) crearBilletera(id, nombre, apellido string) {
 	b.apellido = apellido
 }
 
-func (bc *blockchain) insertarBloque(data []transaccion) {
+func (bc *blockchain) insertarBloque(data transaccion) {
 	var hashAnt string
 	var ult *bloque
 
@@ -84,14 +81,13 @@ func (bc *blockchain) getBalance(billeteraID string) float64 {
 	balance = 0
 	actual := bc.inicio
 	for actual != nil {
-		for _, t := range actual.data {
-			if t.emisorID == billeteraID {
-				balance -= t.monto
-			}
-			if t.receptorID == billeteraID {
-				balance += t.monto
-			}
+		if actual.data.emisorID == billeteraID {
+			balance -= actual.data.monto
 		}
+		if actual.data.receptorID == billeteraID {
+			balance += actual.data.monto
+		}
+
 		actual = actual.sig
 	}
 	return balance
@@ -122,7 +118,7 @@ func (bc *blockchain) enviarTransaccion(emisorId, receptorId string, monto float
 		timestamp:  time.Now(),
 	}
 
-	bc.insertarBloque([]transaccion{t})
+	bc.insertarBloque(t)
 	return true
 }
 
@@ -135,7 +131,7 @@ func main() {
 	b1.crearBilletera("1", "Iara", "Cigalino")
 	b2.crearBilletera("2", "Tomas", "Mancuso")
 
-	bc.insertarBloque([]transaccion{{monto: 1000, emisorID: "init", receptorID: b1.id, timestamp: time.Now()}})
+	bc.insertarBloque(transaccion{monto: 1000, emisorID: "init", receptorID: b1.id, timestamp: time.Now()})
 
 	bc.enviarTransaccion(b1.id, b2.id, 200)
 
